@@ -326,6 +326,7 @@ public class IdentityZoneEndpointsMockMvcTests extends TestClassNullifier {
                 "uaa.resource");
         client.setClientSecret("secret");
         client.addAdditionalInformation(ClientConstants.ALLOWED_PROVIDERS, Collections.singletonList(Origin.UAA));
+        client.addAdditionalInformation("foo", "bar");
         MvcResult result = mockMvc.perform(post("/identity-zones/"+zone.getId()+"/clients")
                 .header("Authorization", "Bearer " + identityClientToken)
                 .contentType(APPLICATION_JSON)
@@ -335,6 +336,8 @@ public class IdentityZoneEndpointsMockMvcTests extends TestClassNullifier {
         BaseClientDetails created = new ObjectMapper().readValue(result.getResponse().getContentAsString(), BaseClientDetails.class);
         assertNull(created.getClientSecret());
         assertEquals("zones.write", created.getAdditionalInformation().get(ClientConstants.CREATED_WITH));
+        assertEquals(Collections.singletonList(Origin.UAA), created.getAdditionalInformation().get(ClientConstants.ALLOWED_PROVIDERS));
+        assertEquals("bar", created.getAdditionalInformation().get("foo"));
         checkAuditEventListener(1, AuditEventType.ClientCreateSuccess, clientCreateEventListener);
         
         mockMvc.perform(delete("/identity-zones/"+zone.getId()+"/clients/"+created.getClientId())
